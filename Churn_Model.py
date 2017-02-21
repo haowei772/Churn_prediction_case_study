@@ -6,6 +6,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_curve
 import ipdb
+import seaborn as sns
+sns.set()
 
 def import_Data(filepath):
     '''
@@ -31,6 +33,7 @@ def mult_Binary_Features(X):
     INPUT: pandas dataframe - X data (BEFORE SPLIT!!!!)
     OUTPUT: pandas dataframe - X data with engineered binary feature columns
     '''
+    X.drop('churn',axis=1,inplace=True)
     X['city'].unique()
     df_city = pd.get_dummies(X['city'])
     X['phone'].unique()
@@ -40,7 +43,7 @@ def mult_Binary_Features(X):
     X.drop(X[['city','phone']], axis=1, inplace=True)
     return X
 
-def Log_Reg(X_train,y_train,X_test):
+def log_Reg(X_train,y_train,X_test):
     '''
     INPUT: numpy arrays of X_train, y_train from train_test_split module
     OUTPUT: fitted model object and probabilities created by model
@@ -48,45 +51,13 @@ def Log_Reg(X_train,y_train,X_test):
     model = LogisticRegression().fit(X_train, y_train)
     return model, model.predict_proba(X_test)
 
-def ROC_curve(probabilities, labels):
+def random_Forest(X_train,y_train,X_test):
     '''
-    Probabilites: LIST of values between (0,1) returned from logistic regression
-    Labels: LIST of true values either 0 or 1
-    The indexes are synced, so probabilites[0] is assigned to labels[0]
-    Function returns:
-    LIST of FLOATS - True Positive Rate (TPR = TP/(TP + FN)),
-    LIST of FLOATS - False Positive Rate (FPR = FP/(TN + FP)),
-    LIST of FLOATS - thresholds which is the probabilities sorted
+    INPUT: numpy arrays of X_train, y_train from train_test_split module
+    OUTPUT: fitted model object and probabilities created by model
     '''
-    thresholds = probabilities[:,1]
-    thresholds.sort()
-    TPR = []
-    FPR = []
-    for t in thresholds:
-        TP = 0
-        FN = 0
-        FP = 0
-        TN = 0
-        for n1,p in enumerate(probabilities[:,1]):
-            if t > p:
-                if labels[n1] == 0:
-                    TN += 1.
-                else:
-                    FN += 1.
-            else:
-                if labels[n1] == 0:
-                    FP += 1.
-                else:
-                    TP += 1.
-        if (TP + FN) == 0:
-            TPR.append(0)
-        else:
-            TPR.append(TP/(TP + FN))
-        if (FP + TN) == 0:
-            FPR.append(0)
-        else:
-            FPR.append(FP/(FP + TN))
-    return TPR, FPR, thresholds
+    model = RandomForestClassifier(n_estimators=300).fit(X_train, y_train)
+    return model, model.predict_proba(X_test)
 
 def plot_ROC(probabilities, labels):
     '''
@@ -96,20 +67,20 @@ def plot_ROC(probabilities, labels):
 
     NOTE: uses sk_learn's roc_curve module to produce fpr and tpr
     '''
-    fpr, tpr, thresholds = ROC_curve(probabilities, labels)
+    fpr, tpr, thresholds = roc_curve(labels, probabilities[:,1])
     plt.plot(fpr, tpr)
     plt.xlabel("False Positive Rate (1 - Specificity)")
     plt.ylabel("True Positive Rate (Sensitivity, Recall)")
     plt.title("ROC plot of fake data")
+    plt.plot(np.linspace(0,1,100), np.linspace(0,1,100),'k-', zorder=0)
     plt.show()
     return
 
 
 if __name__ == '__main__':
     full, y = import_Data('data/churn_train.csv')
-    #print len(full)
     X = mult_Binary_Features(full)
-    #print len(X)
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=101)
-    model, probabilities = LogisticRegression(X_train, y_train,X_test)
-    plot_ROC(probabilities, y_test)
+    model, probabilities = random_Forest(X_train, y_train,X_test)
+    plot_ROC(probabilities, y_test.values)
+    #print X.head()
