@@ -89,8 +89,8 @@ def log_Reg(X_train, y_train, X_test):
     OUTPUT: fitted model object and probabilities created by model
     '''
     model = LogisticRegression().fit(X_train, y_train)
-    return model, model.predict_proba(X_test)
-
+    probabilities = model.predict_proba(X_test)
+    return model, probabilities
 
 def random_Forest(X_train, y_train, X_test):
     '''
@@ -98,24 +98,36 @@ def random_Forest(X_train, y_train, X_test):
     OUTPUT: fitted model object and probabilities created by model
     '''
     model = RandomForestClassifier(n_estimators=50).fit(X_train, y_train)
-    return model, model.predict_proba(X_test)
-
+    probabilities = model.predict_proba(X_test)
+    return model, probabilities
 
 def gradient_Boosting(X_train, y_train, X_test):
     model = GradientBoostingClassifier(n_estimators=200, max_features=1.0,
                                        learning_rate=0.1, max_depth=4, min_samples_leaf=17).fit(X_train, y_train)
-    return model, model.predict_proba(X_test)
+    probabilities = model.predict_proba(X_test)
+    '''predict_proba() give 2 completentary probabilities'''
+    #print probabilities
+    return model, probabilities
+''' Maybe useful
+class init:
+    def __init__(self, est):
+        self.est = est
+    def predict(self, X):
+        return self.est.predict_proba(X)[:,1][:,numpy.newaxis]
+    def fit(self, X, y):
+        self.est.fit(X, y)
 
-
+'''
 def plot_ROC(probabilities, labels):
     '''
-    INPUT: Probabilities from any given model, numpy array of y_test data from
+    INPUT: probabilities from any given model, numpy array of y_test data from
     test_train_split
     OUTPUT: Plotted ROC curve
 
     NOTE: uses sk_learn's roc_curve module to produce fpr and tpr
     '''
     fpr, tpr, thresholds = roc_curve(labels, probabilities[:, 1])
+    '''fpr, tpr are calculated based on the thresholds (the probabilities)'''
     plt.plot(fpr, tpr)
     plt.xlabel("False Positive Rate (1 - Specificity)")
     plt.ylabel("True Positive Rate (Sensitivity, Recall)")
@@ -163,12 +175,14 @@ def GridSearch(X, y):
     return gsearch1.best_params_, gsearch1.best_score_
 
 if __name__ == '__main__':
-    full = import_Data('data/churn_train.csv')
-    full2 = import_Data('data/churn_test.csv')
+    file_path1 = '/Users/haowei/Documents/gal/Day37_case_study2/case_study2/Churn/churn_train.csv'
+    file_path2 = '/Users/haowei/Documents/gal/Day37_case_study2/case_study2/Churn/churn_test.csv'
+    full = import_Data(file_path1)
+    full2 = import_Data(file_path2)
     X, y = feature_engineer(full)
     X2, y2 = feature_engineer(full2)
     #X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=101)
     model, probabilities = gradient_Boosting(X, y, X2)
-    print model.score(X2, y2), precision_score(y2, model.predict(X2)), recall_score(y2, model.predict(X2))
-    #plot_ROC(probabilities, y2.values)
+    #print model.score(X2, y2), precision_score(y2, model.predict(X2)), recall_score(y2, model.predict(X2))
+    plot_ROC(probabilities, y2.values)
     plot_feature_importance(model, X)
