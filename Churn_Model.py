@@ -175,8 +175,8 @@ def GridSearch(X, y):
     return gsearch1.best_params_, gsearch1.best_score_
 
 if __name__ == '__main__':
-    file_path1 = '/Users/haowei/Documents/gal/Day37_case_study2/case_study2/Churn/churn_train.csv'
-    file_path2 = '/Users/haowei/Documents/gal/Day37_case_study2/case_study2/Churn/churn_test.csv'
+    file_path1 = '/Users/haowei/Documents/gal/Day_37_case_study2/case_study2/Churn/churn_train.csv'
+    file_path2 = '/Users/haowei/Documents/gal/Day_37_case_study2/case_study2/Churn/churn_test.csv'
     full = import_Data(file_path1)
     full2 = import_Data(file_path2)
     X, y = feature_engineer(full)
