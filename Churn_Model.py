@@ -155,7 +155,7 @@ def plot_feature_importance(model, X):
               (f + 1, indices[f], importances[indices[f]]))
 
     # Plot the feature importances of the forest
-    plt.figure()
+    plt.figure(figsize = (8,12))
     plt.title("Feature importances")
     plt.bar(range(X.shape[1]), importances[indices],
             color="r", yerr=std[indices], align="center")
